@@ -132,7 +132,16 @@ do
   
   CANARGB)
     python $gen_dir/generate_CANARGB.py -v 1a | writeIfUpdated "$merg_dir"/CANARGB-A557-1a.json
-    ;;    
+    ;;  
+
+  ESP32_CANMIO)
+    #S3, S3-mini processor 8channels
+    python $gen_dir/generate_CANMIOESP32.py -t ESP32_8 -v 1a | writeIfUpdated "$merg_dir"/CANMIOESP32_8-0D20-1a.json
+    #S3, S3-mini processor 16channels
+    python $gen_dir/generate_CANMIOESP32.py -t ESP32_16 -v 1a | writeIfUpdated "$merg_dir"/CANMIOESP32_16-0D20-1a.json
+    #S3, S3-mini processor 24channels
+    python $gen_dir/generate_CANMIOESP32.py -t ESP32_24 -v 1a | writeIfUpdated "$merg_dir"/CANMIOESP32_24-0D20-1a.json
+    ;;
 
   *)
     echo "Unknown module group: $g"
