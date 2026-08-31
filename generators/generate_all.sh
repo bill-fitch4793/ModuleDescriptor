@@ -4,7 +4,7 @@
 
 if [ $# -eq 0 ]
 then
-  groups=(CANINP CANSERVO CANMIO CANPAN CANSCAN CANCMD CANSOL CANARGB)
+  groups=(CANINP CANSERVO CANMIO CANPAN CANSCAN CANCMD CANSOL CANARGB CANEPMIO)
   # NOTE: CANLEVER is not in the list as its generator is out of date.
 else
   groups="$@"
@@ -134,13 +134,13 @@ do
     python $gen_dir/generate_CANARGB.py -v 1a | writeIfUpdated "$merg_dir"/CANARGB-A557-1a.json
     ;;  
 
-  ESP32_CANMIO)
+  CANEPMIO)
     #S3, S3-mini processor 8channels
-    python $gen_dir/generate_CANMIOESP32.py -t ESP32_8 -v 1a | writeIfUpdated "$merg_dir"/CANMIOESP32_8-0D20-1a.json
+    python $gen_dir/generate_CANMIOESP32.py -t ESP32_8 -v 1a | writeIfUpdated "$merg_dir"/CANEPMIO8-0D20-1a.json
     #S3, S3-mini processor 16channels
-    python $gen_dir/generate_CANMIOESP32.py -t ESP32_16 -v 1a | writeIfUpdated "$merg_dir"/CANMIOESP32_16-0D20-1a.json
+    python $gen_dir/generate_CANMIOESP32.py -t ESP32_16 -v 1a | writeIfUpdated "$merg_dir"/CANEPMIO16-0D20-1a.json
     #S3, S3-mini processor 24channels
-    python $gen_dir/generate_CANMIOESP32.py -t ESP32_24 -v 1a | writeIfUpdated "$merg_dir"/CANMIOESP32_24-0D20-1a.json
+    python $gen_dir/generate_CANMIOESP32.py -t ESP32_24 -v 1a | writeIfUpdated "$merg_dir"/CANEPMIO24-0D20-1a.json
     ;;
 
   *)

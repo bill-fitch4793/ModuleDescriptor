@@ -12,6 +12,11 @@ from sys import argv
 from datetime import datetime, timezone
 import argparse
 
+sys.argv = ["myscript.py", "-v", "1a", "-t", "S3MIO8", "-p" , "ESP"]   # ESP32 8 channels
+# sys.argv = ["myscript.py", "-v", "1b", "-t", "S3MIO16", "-p" , "ESP"]	# ESP32 16 channels
+# sys.argv = ["myscript.py", "-v", "1c", "-t", "S3MIO24", "-p" , "ESP"]	# ESP32 24 channels
+# sys.argv = ["myscript.py", "-v", "1d", "-t", "S3MIO28", "-p" , "ESP"]	# ESP32 28 channels
+
 parser = argparse.ArgumentParser()
 parser.add_argument("-v", "--version", help="Firmware version")
 parser.add_argument("-t", "--type", help="Module type")
@@ -22,7 +27,7 @@ args = parser.parse_args()
 moduleType = "MIO"
 moduleName = "CANMIO"
 eventVariables = 20
-channels = 16
+channels = 8
 processorSeries = "K"
 hasAnalogue = False
 hasServo180 = False
@@ -40,6 +45,27 @@ elif args.type == "CDU":
     hasCDU = True
     moduleName = "CANCDU_U"
     channels = 14
+elif args.type == "S3MIO8":
+    hasCDU = False
+    moduleType = "MIOS3"
+    moduleName = "CANMIO"
+    channels = 8
+elif args.type == "S3MIO16":
+    hasCDU = False
+    moduleType = "MIOS3"
+    moduleName = "CANMIO"
+    channels = 16
+elif args.type == "S3MIO24":
+    hasCDU = False
+    moduleType = "MIOS3"
+    moduleName = "CANMIO"
+    channels = 24
+elif args.type == "S3MIO28":
+    hasCDU = False
+    moduleType = "MIOS3"
+    moduleName = "CANMIO"
+    channels = 28
+
 elif args.type is not None:
     print(f"Unknown module type '{args.type}'")
     exit(1)
@@ -53,6 +79,12 @@ elif args.processor == "22":
 elif args.processor == "23":
     # PIC18F27Q83
     processorSeries = "Q"
+elif args.processor == "50":
+    # ESP32
+    processorSeries = "Q"
+elif args.processor == "ESP":
+    # ESP32
+    processorSeries = "Q"  
 elif args.processor is not None:
     print(f"Unsupported processor ID ({args.processor})")
     exit(1)
@@ -79,6 +111,11 @@ elif args.version == "4d":
     hasServo180 = True
     if processorSeries == "Q":
         hasLEDSW = True
+    canPreventDefaultEvents = True
+elif args.version[0] == "1":   #ESP32_S3
+    hasAnalogue = False
+    hasServo180 = False
+    hasLEDSW = False
     canPreventDefaultEvents = True
 else:
     print(f"Unknown version '{args.version}'")
@@ -260,10 +297,12 @@ data = {
                                     {"label": "OUTPUT", "value": 1}
                                 ] + (
                                 [
-                                    {"label": "SERVO", "value": 2},
+                                    {"label": "SERVO", "value": 2}
+                                ] if ch <= 32 else []) + (
+                                [
                                     {"label": "BOUNCE", "value": 3},
                                     {"label": "MULTI", "value": 4}
-                                ] if ch <= 16 else []) + (
+                                ] if ch <= 32 and args.processor != "ESP" else []) + (
                                 [
                                     {"label": "ANALOGUE", "value": 5},
                                     {"label": "MAGNET", "value": 6}
@@ -402,7 +441,7 @@ data = {
                             "displayTitle": "OFF to ON speed",
                             "displaySubTitle": "servo specific",
                             "displayUnits": "",
-                            "min": 230
+                            "min": 2
                         },
                         {
                             "type": "NodeVariableSlider",
@@ -431,7 +470,7 @@ data = {
                             "displayTitle": "ON to OFF speed",
                             "displaySubTitle": "servo specific",
                             "displayUnits": "",
-                            "min": 230
+                            "min": 2
                         },
                         {
                             "type": "NodeVariableSlider",
@@ -867,5 +906,52 @@ data = {
     ]
 }
 
-json.dump(data, sys.stdout, indent=2)
-print("")
+# def generate_filename(moduleName, manufacturer_id, module_id, version):
+#     """
+#     Generate MERG-style descriptor filename:
+#     AAAAAAA-BBCC-DE.json
+#     """
+#     # Convert manufacturer and module ID to 2-digit uppercase hex
+#     manu_hex = f"{manufacturer_id:02X}"
+#     module_hex = f"{module_id:02X}"
+#     
+#     print("manu_hex", manu_hex)
+#     print("module_hex", module_hex)
+# 
+#     # Extract major (digits) and minor (last character)
+#     major = "".join([c for c in version if c.isdigit()])
+#     minor = version[-1]
+#     
+#     print ("major" + major)
+#     print ("minor" + minor)
+# 
+#     # Assemble filename
+#     return f"{moduleName}-{manu_hex}{module_hex}-{major}{minor}.json"
+    
+def generate_filename(moduleName, moduleId, version):
+    """
+    Correct MERG/VLCB descriptor filename:
+    <moduleName>-A<moduleId>-<version>.json
+    """
+    if moduleId == 32: moduleId = 520
+    major = "".join([c for c in version if c.isdigit()])
+    minor = version[-1]
+    return f"{moduleName}-A{moduleId}-{major}{minor}.json"
+    
+
+import json
+
+# Manufacturer and module ID
+manufacturer_id = 0xA5          # MERG
+module_id = 32                # or whatever your module uses 32 for canmio
+
+# Generate filename
+filename = generate_filename(moduleName, module_id, args.version)
+
+# Write JSON to file
+with open(filename, "w") as f:
+    json.dump(data, f, indent=2)
+    f.write("\n")
+
+print(f"Descriptor written to {filename}")
+    
