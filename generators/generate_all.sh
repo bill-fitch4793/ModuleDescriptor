@@ -4,8 +4,7 @@
 
 if [ $# -eq 0 ]
 then
-  # groups=(CANINP CANSERVO CANMIO CANPAN CANSCAN CANCMD CANSOL CANARGB CANEPMIO)
-  groups=(CANMIO CANEPMIO)
+  groups=(CANINP CANSERVO CANMIO CANPAN CANSCAN CANCMD CANSOL CANARGB CANEPMIO)
   # NOTE: CANLEVER is not in the list as its generator is out of date.
 else
   groups="$@"
